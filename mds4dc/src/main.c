@@ -20,7 +20,7 @@ char* data_track_iso_filename;
 int audio_files_count = 0;
 char** audio_files_array = NULL;
 	
-// position ou on doit placer le curseur avant d'écrire le pourcentage
+// position ou on doit placer le curseur avant d'ï¿½crire le pourcentage
 uint32_t x = 0, y = 0;
 
 void print_header() {
@@ -151,7 +151,7 @@ void writing_track_event_end(uint32_t block_count, uint32_t track_size) {
 /* 
 	Ligne de commande :
 	mds4dc <image_format> <output.mds> <data.iso> [audio_1.raw ... audio_n.raw]
-	<image_format> pourra accepter plus tard un paramètre pour faire des images DAO à la place d'une TAO.
+	<image_format> pourra accepter plus tard un paramï¿½tre pour faire des images DAO ï¿½ la place d'une TAO.
 	
 	<image_format> :
 					-a : audio/data
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	
-	// détecter le type d'image
+	// dï¿½tecter le type d'image
 	if(strcmp(argv[1], "-a") == 0) image_format = AUDIO_DATA_IMAGE_FORMAT;
 	if(strcmp(argv[1], "-c") == 0) image_format = AUDIO_DATA_CUSTOM_CDDA_IMAGE_FORMAT;
 	if(strcmp(argv[1], "-d") == 0) image_format = DATA_DATA_IMAGE_FORMAT;
@@ -184,15 +184,15 @@ int main(int argc, char* argv[]) {
 		return 2;
 	}		
 	
-	// récupérer les pistes CDDA
+	// rï¿½cupï¿½rer les pistes CDDA
 	if (image_format == AUDIO_DATA_CUSTOM_CDDA_IMAGE_FORMAT) {
-		audio_files_count = argc - 4; // les 4 premiers arguments sont reservés.
+		audio_files_count = argc - 4; // les 4 premiers arguments sont reservï¿½s.
 		if (audio_files_count == 0) {
 			warning_msg("No CDDA tracks were found buddy, check your syntax by reading the help !\n");
 			return 3;
 		}
 		
-		// création d'un tableau de string contenant toutes les pistes CDDA.
+		// crï¿½ation d'un tableau de string contenant toutes les pistes CDDA.
 		audio_files_array = (char**) malloc(sizeof(char*) * audio_files_count);
 		for(i = 0 ; i < audio_files_count ; i++)
 			audio_files_array[i] = strdup(argv[i + 4]);
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 		}
 		get_volumename(iso, volume_name);
 	} else { 
-		// problème avec l'ISO
+		// problï¿½me avec l'ISO
 		textColor(LIGHT_RED);
 		printf("Error when reading %s !\n", data_track_iso_filename);
 		textColor(LIGHT_GRAY);
@@ -234,22 +234,22 @@ int main(int argc, char* argv[]) {
 	info_msg("Volume name");
 	printf("%s\n", volume_name);
 		
-	// récuperer les noms de fichiers
+	// rï¿½cuperer les noms de fichiers
 	output_mds_filename = check_ext(argv[2], "mds");
 	output_mdf_filename = check_ext(argv[2], "mdf");
 	
-	// ouvrir les différents fichiers
+	// ouvrir les diffï¿½rents fichiers
 	mdf = fopen(output_mdf_filename, "wb");
 	mds = fopen(output_mds_filename, "wb");
 	
 	if (image_format == AUDIO_DATA_CUSTOM_CDDA_IMAGE_FORMAT)
-		write_audio_data_image(mds, mdf, iso, audio_files_count, audio_files_array);
+		write_audio_data_image(mds, mdf, iso, audio_files_count, audio_files_array, MINIMUM_AUDIO_LBA);
 	else if (image_format == AUDIO_DATA_IMAGE_FORMAT)
-		write_audio_data_image(mds, mdf, iso, 1, NULL);
+		write_audio_data_image(mds, mdf, iso, 1, NULL, MINIMUM_AUDIO_LBA);
 	else if (image_format == DATA_DATA_IMAGE_FORMAT)
 		write_data_data_image(mds, mdf, iso);
 
-	// les fichiers sont fermés dans les différentes fonction de création.
+	// les fichiers sont fermï¿½s dans les diffï¿½rentes fonction de crï¿½ation.
 	
 	int exit_code = 0;
 	if (image_creation_okay) {

@@ -19,7 +19,7 @@ unsigned int data_session_sectors_count = 0; // pour la session data
 unsigned int data_boothead_session_sectors_count = 0; // pour la session boot data (session 2) dans le cas d'un disque DATA/DATA
 unsigned int data_start_lba = 0;
 
-void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_count, char* audio_files_array[]) {
+void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_count, char* audio_files_array[], uint64_t buffer_track_size_blocks) {
 	int i, j, track_postype;
 	FILE* raw = NULL; // audio track
 	
@@ -41,7 +41,7 @@ void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_cou
 		/* Ecriture des pistes CDDA en session 1 */
 		if (image_format == AUDIO_DATA_CUSTOM_CDDA_IMAGE_FORMAT) {
 			
-			// on va écrire chaque piste audio dans le fichier.
+			// on va ï¿½crire chaque piste audio dans le fichier.
 			for(i = 0 ; i < cdda_tracks_count ; i++) {
 				raw = fopen(audio_files_array[i], "rb");
 				
@@ -71,11 +71,11 @@ void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_cou
 			
 		} else { 
 			// AUDIO_DATA_IMAGE_FORMAT
-			// une fausse piste audio de 302 secteurs est écrite.
+			// une fausse piste audio de 302 secteurs est ï¿½crite.
 			audio_infos[0].lba = 0;
-			audio_infos[0].sectors_count = MINIMAL_TRACK_SIZE_BLOCKS + 2;
+			audio_infos[0].sectors_count = buffer_track_size_blocks;
 			cdda_session_sectors_count = audio_infos[0].sectors_count;
-			write_null_block(mdf, AUDIO_FAKE_TRACK_SIZE);
+			write_null_block(mdf, buffer_track_size_blocks * AUDIO_SECTOR_SIZE);
 #ifdef APP_CONSOLE
 			printf("Fake track written successfully\n");
 #endif
@@ -102,7 +102,7 @@ void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_cou
 #endif
 		}
 		
-		// écriture du MDF terminée.
+		// ï¿½criture du MDF terminï¿½e.
 		fclose(mdf);
 	} else {
 		image_creation_okay = 0;
@@ -117,7 +117,7 @@ void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_cou
 
 	/* ECRITURE DU MDS */
 	if (mds != NULL) {
-		// en-tête
+		// en-tï¿½te
 		ad_write_mds_header(mds);
 		
 		// session 1 (audio)
@@ -213,7 +213,7 @@ void write_data_data_image(FILE* mds, FILE* mdf, FILE* iso) {
 #endif
 		}
 		
-		// écriture du MDF terminée.
+		// ï¿½criture du MDF terminï¿½e.
 		fclose(mdf);
 	} else {
 		image_creation_okay = 0;
@@ -228,7 +228,7 @@ void write_data_data_image(FILE* mds, FILE* mdf, FILE* iso) {
 
 	/* ECRITURE DU MDS */
 	if (mds != NULL) {
-		// en-tête
+		// en-tï¿½te
 		dd_write_mds_header(mds);
 		
 		// session 1

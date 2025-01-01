@@ -8,7 +8,7 @@ typedef struct AUDIOTRACKINFOS {
 	int sectors_count;
 } AUDIOTRACKINFOS;
 
-void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_count, char* audio_files_array[]);
+void write_audio_data_image(FILE* mds, FILE* mdf, FILE* iso, int cdda_tracks_count, char* audio_files_array[], uint64_t buffer_track_size_blocks);
 void write_data_data_image(FILE* mds, FILE* mdf, FILE* iso);
 
 #endif // __IMGWRITE__H__

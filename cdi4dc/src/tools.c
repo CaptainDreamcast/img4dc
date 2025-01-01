@@ -94,11 +94,11 @@ void get_volumename(FILE* iso, char* volume_name) {
 }
 
 // donne la taille utilisée par le CDI en fonction des secteurs de données.
-uint32_t get_total_cdi_space_used(uint32_t data_sectors_count) {
+uint32_t get_total_cdi_space_used(uint32_t cdda_sectors_count, uint32_t data_sectors_count) {
 	/* 	301 : nombre de secteurs audio
 		11702 : msinfo
 		150 : j'en sais rien, c'est comme ça */
-	return (301 + 11702 + (data_sectors_count - 1)) - 150;
+	return ((cdda_sectors_count - 1) + 11400 + (data_sectors_count - 1)) - 150;
 }
 
 /* int get_track_cdi_data_space_used(uint32_t data_sectors_count) {

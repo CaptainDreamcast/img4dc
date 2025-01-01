@@ -35,8 +35,8 @@
 
 uint32_t x, y; // position ou on doit placer le curseur avant d'écrire le pourcentage
 
-int write_cdi_audio_track(FILE *cdi);
-void write_audio_cdi_header(FILE *cdi, char* cdiname, char* volume_name, long data_sector_count, uint32_t total_cdi_space_used);
+int write_cdi_audio_track(FILE *cdi, uint64_t cdi_audio_track_total_size);
+void write_audio_cdi_header(FILE *cdi, char* cdiname, char* volume_name, long data_sector_count, uint32_t total_cdi_space_used, uint64_t cdda_sector_count);
 int write_data_cdi_header(FILE *cdi, char* cdiname, char* volume_name, long data_sector_count, uint32_t total_cdi_space_used);
 void write_data_gap_start_track(FILE* cdi);
 void write_data_header_boot_track(FILE* cdi, FILE* iso);
@@ -88,10 +88,14 @@ void print_head() {
 	printf_colored(WHITE, " - Written by SiZiOUS\nhttp://www.sizious.com/\n\n");
 }
 
-void create_audio_data_image(FILE* infp, FILE* outfp, char* outfilename) {
+void create_audio_data_image(FILE* infp, FILE* outfp, char* outfilename, uint64_t audio_sector_count) {
 	char volume_name[33];
     int data_blocks_count;
 	float space_used;
+
+	uint64_t buffer_track_size_blocks = audio_sector_count;
+	uint64_t cdi_audio_track_total_size = buffer_track_size_blocks * 2352;
+	uint64_t cdi_audio_end_padding = (buffer_track_size_blocks * 2352) - 11760;
 
 	/*i = get_iso_msinfo_value(infp);
 	if (i != 11702) { // 11702 pour notre MSINFO !
@@ -109,7 +113,7 @@ void create_audio_data_image(FILE* infp, FILE* outfp, char* outfilename) {
 
 	// ecrire piste audio
 	echo("Writing audio track.....: ");
-	write_cdi_audio_track(outfp);
+	write_cdi_audio_track(outfp, cdi_audio_track_total_size);
 	printf("OK\n");
 
 	// ecrire les tracks GAP
@@ -124,7 +128,7 @@ void create_audio_data_image(FILE* infp, FILE* outfp, char* outfilename) {
 
 	data_blocks_count = write_data_track(outfp, infp);
 
-	space_used = (float)(get_total_cdi_space_used(data_blocks_count) * data_sector_size) / 1024 / 1024;
+	space_used = (float)(get_total_cdi_space_used(buffer_track_size_blocks, data_blocks_count) * data_sector_size) / 1024 / 1024;
 	gotoXY(x, y);
 	printf_colored(LIGHT_CYAN, "\n%25c %d ", ' ',  data_blocks_count);
 	printf("block(s) written (");
@@ -138,7 +142,8 @@ void create_audio_data_image(FILE* infp, FILE* outfp, char* outfilename) {
 		outfilename,
 		volume_name,
 		data_blocks_count,
-		get_total_cdi_space_used(data_blocks_count)
+		get_total_cdi_space_used(buffer_track_size_blocks, data_blocks_count), 
+		buffer_track_size_blocks
 	);
 	printf("OK\n");
 }
@@ -167,7 +172,7 @@ void create_data_data_image(FILE* infp, FILE* outfp, char* outfilename) {
 
 	data_blocks_count = write_data_track(outfp, infp);
 
-	space_used = (float)(get_total_cdi_space_used(data_blocks_count) * data_sector_size) / 1024 / 1024;
+	space_used = (float)(get_total_cdi_space_used(MINIMUM_AUDIO_LBA, data_blocks_count) * data_sector_size) / 1024 / 1024;
 	gotoXY(x, y);
 	printf_colored(LIGHT_CYAN, "\n%25c %d ", ' ',  data_blocks_count);
 	printf("block(s) written (");
@@ -191,7 +196,7 @@ void create_data_data_image(FILE* infp, FILE* outfp, char* outfilename) {
 		outfilename,
 		volume_name,
 		data_blocks_count,
-		get_total_cdi_space_used(data_blocks_count)
+		get_total_cdi_space_used(MINIMUM_AUDIO_LBA, data_blocks_count)
 	);
 	printf("OK\n");
 }
@@ -232,8 +237,12 @@ int main(int argc, char *argv[]) {
 
 	if ((argc == 4) && (strcmp(argv[3], "-d") == 0)) {
 		create_data_data_image(infp, outfp, outfilename);
-	} else {
-		create_audio_data_image(infp, outfp, outfilename);
+	} else if(argc == 5 && (!strcmp(argv[3], "-a"))) {
+		uint64_t sectorCount = atoi(argv[4]);
+		create_audio_data_image(infp, outfp, outfilename, sectorCount);
+	} else
+	{
+		create_audio_data_image(infp, outfp, outfilename, MINIMUM_AUDIO_LBA);
 	}
 
 	printf_colored(LIGHT_CYAN, "\nWoohoo... All done OK!\nYou can burn it now %s...\n", WARNING_MSG);
